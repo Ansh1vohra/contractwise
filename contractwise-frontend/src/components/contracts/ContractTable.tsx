@@ -2,12 +2,39 @@ import { useState } from "react";
 import { Link } from "react-router-dom";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Search, Upload, Filter, FileText } from "lucide-react";
-import { Contract } from "@/data/contracts";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Search, Upload, FileText } from "lucide-react";
 import { cn } from "@/lib/utils";
+
+interface Contract {
+  doc_id: string;
+  filename: string;
+  uploaded_on?: string | null;
+  status?: string;
+  risk_score?: string;
+  uploadedOn?: string;
+  parties?: string[]; // optional now
+}
 
 interface ContractTableProps {
   contracts: Contract[];
@@ -22,37 +49,54 @@ export function ContractTable({ contracts, loading }: ContractTableProps) {
   const itemsPerPage = 10;
 
   // Filter contracts
-  const filteredContracts = contracts.filter(contract => {
-    const matchesSearch = 
-      contract.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      contract.parties.some(party => party.toLowerCase().includes(searchTerm.toLowerCase()));
-    
-    const matchesStatus = statusFilter === "all" || contract.status === statusFilter;
-    const matchesRisk = riskFilter === "all" || contract.riskScore === riskFilter;
-    
-    return matchesSearch && matchesStatus && matchesRisk;
-  });
+  const filteredContracts = contracts.filter((contract) => {
+  const contractName = contract.filename || "";   // use filename instead of name
+  const matchesSearch =
+    contractName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    (contract.parties || []).some((party) =>
+      (party || "").toLowerCase().includes(searchTerm.toLowerCase())
+    );
+
+  const matchesStatus =
+    statusFilter === "all" || contract.status === statusFilter;
+  const matchesRisk =
+    riskFilter === "all" || contract.risk_score === riskFilter;
+
+  return matchesSearch && matchesStatus && matchesRisk;
+});
+
 
   // Paginate contracts
   const totalPages = Math.ceil(filteredContracts.length / itemsPerPage);
   const startIndex = (currentPage - 1) * itemsPerPage;
-  const paginatedContracts = filteredContracts.slice(startIndex, startIndex + itemsPerPage);
+  const paginatedContracts = filteredContracts.slice(
+    startIndex,
+    startIndex + itemsPerPage
+  );
 
-  const getStatusClassName = (status: Contract['status']) => {
+  const getStatusClassName = (status?: string) => {
     switch (status) {
-      case 'Active': return 'status-active';
-      case 'Renewal Due': return 'status-renewal';
-      case 'Expired': return 'status-expired';
-      default: return '';
+      case "Active":
+        return "status-active";
+      case "Renewal Due":
+        return "status-renewal";
+      case "Expired":
+        return "status-expired";
+      default:
+        return "";
     }
   };
 
-  const getRiskClassName = (risk: Contract['riskScore']) => {
+  const getRiskClassName = (risk?: string) => {
     switch (risk) {
-      case 'Low': return 'risk-low';
-      case 'Medium': return 'risk-medium';
-      case 'High': return 'risk-high';
-      default: return '';
+      case "Low":
+        return "risk-low";
+      case "Medium":
+        return "risk-medium";
+      case "High":
+        return "risk-high";
+      default:
+        return "";
     }
   };
 
@@ -136,21 +180,24 @@ export function ContractTable({ contracts, loading }: ContractTableProps) {
           {filteredContracts.length === 0 ? (
             <div className="text-center py-12">
               <FileText className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
-              <h3 className="text-lg font-medium text-foreground mb-2">No contracts found</h3>
+              <h3 className="text-lg font-medium text-foreground mb-2">
+                No contracts found
+              </h3>
               <p className="text-muted-foreground mb-4">
                 {searchTerm || statusFilter !== "all" || riskFilter !== "all"
                   ? "Try adjusting your filters"
-                  : "Upload your first contract to get started"
-                }
+                  : "Upload your first contract to get started"}
               </p>
-              {!searchTerm && statusFilter === "all" && riskFilter === "all" && (
-                <Link to="/dashboard/upload">
-                  <Button>
-                    <Upload className="mr-2 h-4 w-4" />
-                    Upload Contract
-                  </Button>
-                </Link>
-              )}
+              {!searchTerm &&
+                statusFilter === "all" &&
+                riskFilter === "all" && (
+                  <Link to="/dashboard/upload">
+                    <Button>
+                      <Upload className="mr-2 h-4 w-4" />
+                      Upload Contract
+                    </Button>
+                  </Link>
+                )}
             </div>
           ) : (
             <>
@@ -159,38 +206,45 @@ export function ContractTable({ contracts, loading }: ContractTableProps) {
                   <TableRow>
                     <TableHead>Contract Name</TableHead>
                     <TableHead>Parties</TableHead>
-                    <TableHead>Expiry Date</TableHead>
+                    <TableHead>Upload Date</TableHead>
                     <TableHead>Status</TableHead>
                     <TableHead>Risk Score</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {paginatedContracts.map((contract) => (
-                    <TableRow key={contract.id} className="hover:bg-muted/50">
+                    <TableRow
+                      key={contract.doc_id}
+                      className="hover:bg-muted/50"
+                    >
                       <TableCell>
-                        <Link 
-                          to={`/dashboard/contracts/${contract.id}`}
+                        <Link
+                          to={`/dashboard/contracts/${contract.doc_id}`}
                           className="font-medium text-primary hover:underline"
                         >
-                          {contract.name}
+                          {contract.filename}
                         </Link>
                       </TableCell>
                       <TableCell>
                         <div className="text-sm">
-                          {contract.parties.join(", ")}
+                          {(contract.parties || []).length > 0
+                            ? contract.parties.join(", ")
+                            : "—"}
                         </div>
                       </TableCell>
                       <TableCell>
-                        {new Date(contract.expiryDate).toLocaleDateString()}
+                        {contract.uploaded_on
+                          ? new Date(contract.uploaded_on).toLocaleDateString()
+                          : "—"}
                       </TableCell>
                       <TableCell>
                         <span className={getStatusClassName(contract.status)}>
-                          {contract.status}
+                          {contract.status || "—"}
                         </span>
                       </TableCell>
                       <TableCell>
-                        <span className={getRiskClassName(contract.riskScore)}>
-                          {contract.riskScore}
+                        <span className={getRiskClassName(contract.risk_score)}>
+                          {contract.risk_score || "—"}
                         </span>
                       </TableCell>
                     </TableRow>
@@ -202,13 +256,17 @@ export function ContractTable({ contracts, loading }: ContractTableProps) {
               {totalPages > 1 && (
                 <div className="flex items-center justify-between px-6 py-4 border-t border-card-border">
                   <p className="text-sm text-muted-foreground">
-                    Showing {startIndex + 1} to {Math.min(startIndex + itemsPerPage, filteredContracts.length)} of {filteredContracts.length} contracts
+                    Showing {startIndex + 1} to{" "}
+                    {Math.min(startIndex + itemsPerPage, filteredContracts.length)}{" "}
+                    of {filteredContracts.length} contracts
                   </p>
                   <div className="flex items-center space-x-2">
                     <Button
                       variant="outline"
                       size="sm"
-                      onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                      onClick={() =>
+                        setCurrentPage((prev) => Math.max(prev - 1, 1))
+                      }
                       disabled={currentPage === 1}
                     >
                       Previous
@@ -219,7 +277,11 @@ export function ContractTable({ contracts, loading }: ContractTableProps) {
                     <Button
                       variant="outline"
                       size="sm"
-                      onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                      onClick={() =>
+                        setCurrentPage((prev) =>
+                          Math.min(prev + 1, totalPages)
+                        )
+                      }
                       disabled={currentPage === totalPages}
                     >
                       Next

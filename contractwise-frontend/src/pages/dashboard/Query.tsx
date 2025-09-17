@@ -9,16 +9,17 @@ import { cn } from "@/lib/utils";
 
 interface QueryResult {
   answer: string;
-  confidence: number;
+  confidence?: number; // optional
   chunks: Array<{
     id: string;
     text: string;
     contractName: string;
     pageNumber: number;
     relevanceScore: number;
-    confidence: number;
+    confidence?: number; // optional
   }>;
 }
+
 
 export default function QueryPage() {
   const [query, setQuery] = useState("");
@@ -33,52 +34,50 @@ export default function QueryPage() {
   ];
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!query.trim()) return;
+  e.preventDefault();
+  if (!query.trim()) return;
 
-    setLoading(true);
-    
-    // Simulate AI processing
-    try {
-      await new Promise(resolve => setTimeout(resolve, 2000));
-      
-      // Mock response
-      setResult({
-        answer: "Based on my analysis of your contracts, I found several key termination clauses. The Software License Agreement with Adobe allows for termination with 30 days written notice by either party. The Service Agreement with CloudHost includes a similar 30-day notice period but also includes provisions for immediate termination in case of breach. The Employment Contract with John Smith has a different structure with 2 weeks notice for the employee and 4 weeks for the employer.",
-        confidence: 92,
-        chunks: [
-          {
-            id: "1",
-            text: "Either party may terminate this Agreement at any time upon thirty (30) days prior written notice to the other party...",
-            contractName: "Software License Agreement - Adobe",
-            pageNumber: 5,
-            relevanceScore: 0.95,
-            confidence: 88
-          },
-          {
-            id: "2", 
-            text: "This Agreement may be terminated immediately by either party upon material breach by the other party...",
-            contractName: "Service Agreement - CloudHost",
-            pageNumber: 8,
-            relevanceScore: 0.89,
-            confidence: 82
-          },
-          {
-            id: "3",
-            text: "Employee may terminate employment by providing two (2) weeks written notice. Employer may terminate with four (4) weeks notice...",
-            contractName: "Employment Contract - John Smith",
-            pageNumber: 3,
-            relevanceScore: 0.76,
-            confidence: 79
-          }
-        ]
-      });
-    } catch (error) {
-      console.error("Query failed:", error);
-    } finally {
-      setLoading(false);
+  setLoading(true);
+  setResult(null);
+
+  try {
+    const token = localStorage.getItem("token"); // ensure token is saved at login
+
+    const res = await fetch(`${import.meta.env.VITE_API_BASE_URL}/ask`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({ question: query }),
+    });
+
+    if (!res.ok) {
+      throw new Error(`Failed to query AI: ${res.statusText}`);
     }
-  };
+
+    const data = await res.json();
+
+    // Map backend format → frontend format
+    setResult({
+      answer: data.answer,
+      confidence: 90, // backend doesn’t return this, so fake or remove
+      chunks: data.chunks.map((c: any, index: number) => ({
+        id: String(index),
+        text: c.text,
+        contractName: c.metadata.contract_name,
+        pageNumber: c.metadata.page,
+        relevanceScore: c.similarity,
+        confidence: Math.round(c.similarity * 100), // optional
+      })),
+    });
+  } catch (error) {
+    console.error("Query failed:", error);
+  } finally {
+    setLoading(false);
+  }
+};
+
 
   const handleExampleClick = (exampleQuery: string) => {
     setQuery(exampleQuery);

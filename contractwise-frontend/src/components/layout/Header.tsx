@@ -12,7 +12,8 @@ import { LogOut, User } from "lucide-react";
 
 export function Header() {
   const handleLogout = () => {
-    // In a real app, you'd handle logout logic here
+    localStorage.removeItem("token");
+    window.location.href = "/login";    
     console.log("Logging out...");
   };
 
@@ -40,10 +41,6 @@ export function Header() {
               john@example.com
             </DropdownMenuLabel>
             <DropdownMenuSeparator />
-            <DropdownMenuItem>
-              <User className="mr-2 h-4 w-4" />
-              Profile
-            </DropdownMenuItem>
             <DropdownMenuSeparator />
             <DropdownMenuItem onClick={handleLogout}>
               <LogOut className="mr-2 h-4 w-4" />

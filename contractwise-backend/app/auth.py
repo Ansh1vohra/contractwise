@@ -53,7 +53,7 @@ def signup(user: UserSignup):
     # check if exists
     res = supabase.table("users").select("*").eq("username", user.username).execute()
     if res.data:
-        raise HTTPException(status_code=400, detail="Username already exists")
+        raise HTTPException(status_code=400, detail="email already exists")
 
     hashed_pw = pwd_context.hash(user.password)
 
@@ -70,11 +70,11 @@ def signup(user: UserSignup):
 def login(user: UserLogin):
     res = supabase.table("users").select("*").eq("username", user.username).execute()
     if not res.data:
-        raise HTTPException(status_code=400, detail="Invalid username or password")
+        raise HTTPException(status_code=400, detail="Invalid email or password")
 
     user_data = res.data[0]
     if not pwd_context.verify(user.password, user_data["password_hash"]):
-        raise HTTPException(status_code=400, detail="Invalid username or password")
+        raise HTTPException(status_code=400, detail="Invalid email or password")
 
     token = create_access_token({"sub": str(user_data["user_id"])})
     return {"access_token": token, "token_type": "bearer"}

@@ -41,7 +41,8 @@ export default function Signup() {
     });
 
     // Redirect after success
-    navigate("/dashboard/contracts");
+    alert("Signup successful! Please log in.");
+    navigate("/login");
   } catch (err: any) {
     setError(err.message || "Signup failed. Please try again.");
   } finally {

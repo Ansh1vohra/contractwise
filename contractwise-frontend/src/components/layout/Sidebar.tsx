@@ -13,9 +13,9 @@ import { cn } from "@/lib/utils";
 
 const navigation = [
   { name: "Contracts", href: "/dashboard/contracts", icon: FileText },
+  { name: "Query", href: "/dashboard/query", icon: Settings }, 
   { name: "Insights", href: "/dashboard/insights", icon: BarChart3 },
   { name: "Reports", href: "/dashboard/reports", icon: FileSpreadsheet },
-  { name: "Settings", href: "/dashboard/settings", icon: Settings },
 ];
 
 export function Sidebar() {

@@ -34,7 +34,7 @@ export default function UploadPage() {
     e.preventDefault();
     e.stopPropagation();
     setDragActive(false);
-    
+
     const files = Array.from(e.dataTransfer.files);
     handleFiles(files);
   };
@@ -46,28 +46,26 @@ export default function UploadPage() {
     }
   };
 
-  const handleFiles = (files: File[]) => {
-    const validTypes = ['application/pdf', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', 'text/plain'];
-    
-    files.forEach((file) => {
-      if (!validTypes.includes(file.type)) {
-        // Show error for invalid file type
-        return;
-      }
+  function handleFiles(files: File[]) {
+  const validTypes = ["application/pdf", "application/vnd.openxmlformats-officedocument.wordprocessingml.document", "text/plain"];
+  
+  files.forEach((file) => {
+    if (!validTypes.includes(file.type)) return;
 
-      const fileUpload: UploadedFile = {
-        file,
-        progress: 0,
-        status: 'uploading',
-        id: Math.random().toString(36).substr(2, 9)
-      };
+    const fileUpload: UploadedFile = {
+      file,
+      progress: 0,
+      status: "uploading",
+      id: Math.random().toString(36).substr(2, 9),
+    };
 
-      setUploadedFiles(prev => [...prev, fileUpload]);
+    setUploadedFiles(prev => [...prev, fileUpload]);
 
-      // Simulate upload progress
-      simulateUpload(fileUpload.id);
-    });
-  };
+    // 🔄 Instead of simulating, actually call backend
+    uploadFile(fileUpload);
+  });
+}
+
 
   const simulateUpload = (fileId: string) => {
     const interval = setInterval(() => {
@@ -83,7 +81,7 @@ export default function UploadPage() {
 
     setTimeout(() => {
       clearInterval(interval);
-      setUploadedFiles(prev => prev.map(file => 
+      setUploadedFiles(prev => prev.map(file =>
         file.id === fileId ? { ...file, progress: 100, status: 'success' } : file
       ));
     }, 2000);
@@ -100,6 +98,47 @@ export default function UploadPage() {
     return '📄';
   };
 
+  const uploadFile = async (fileUpload: UploadedFile) => {
+    const token = localStorage.getItem("token");
+    if (!token) {
+      setUploadedFiles(prev =>
+        prev.map(f => f.id === fileUpload.id ? { ...f, status: "error" } : f)
+      );
+      return;
+    }
+
+    try {
+      const payload = {
+        filename: fileUpload.file.name,
+        expiry_date: null,
+        status: "Active",
+        risk_score: "Low",
+      };
+
+      const res = await fetch(`${import.meta.env.VITE_API_BASE_URL}/contracts/upload`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`,
+        },
+        body: JSON.stringify(payload),
+      });
+
+      if (!res.ok) throw new Error("Upload failed");
+
+      // ✅ Success → mark file as uploaded
+      setUploadedFiles(prev =>
+        prev.map(f => f.id === fileUpload.id ? { ...f, progress: 100, status: "success" } : f)
+      );
+    } catch (err) {
+      // ❌ Error → mark as failed
+      setUploadedFiles(prev =>
+        prev.map(f => f.id === fileUpload.id ? { ...f, status: "error" } : f)
+      );
+    }
+  };
+
+
   return (
     <DashboardLayout>
       <div className="space-y-6 animate-slide-up">
@@ -111,8 +150,8 @@ export default function UploadPage() {
               Upload PDF, DOCX, or TXT files for AI analysis
             </p>
           </div>
-          <Button 
-            variant="outline" 
+          <Button
+            variant="outline"
             onClick={() => navigate("/dashboard/contracts")}
           >
             Back to Contracts
@@ -125,8 +164,8 @@ export default function UploadPage() {
             <div
               className={cn(
                 "border-2 border-dashed rounded-lg p-12 text-center transition-colors",
-                dragActive 
-                  ? "border-primary bg-primary/5" 
+                dragActive
+                  ? "border-primary bg-primary/5"
                   : "border-muted-foreground/25 hover:border-muted-foreground/50"
               )}
               onDragEnter={handleDrag}
@@ -141,7 +180,7 @@ export default function UploadPage() {
               <p className="text-muted-foreground mb-4">
                 Supports PDF, DOCX, and TXT files up to 10MB
               </p>
-              <Button 
+              <Button
                 onClick={() => fileInputRef.current?.click()}
                 className="mb-2"
               >
@@ -222,7 +261,7 @@ export default function UploadPage() {
                 <div>
                   <h3 className="font-medium text-foreground">Upload Successful!</h3>
                   <p className="text-sm text-muted-foreground">
-                    Your contracts have been uploaded and are being processed. 
+                    Your contracts have been uploaded and are being processed.
                     You can view them in the contracts dashboard.
                   </p>
                 </div>
@@ -231,8 +270,8 @@ export default function UploadPage() {
                 <Button onClick={() => navigate("/dashboard/contracts")}>
                   View Contracts
                 </Button>
-                <Button 
-                  variant="outline" 
+                <Button
+                  variant="outline"
                   onClick={() => setUploadedFiles([])}
                 >
                   Upload More
