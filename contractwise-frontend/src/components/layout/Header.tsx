@@ -36,9 +36,9 @@ export function Header() {
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent className="w-56" align="end">
-            <DropdownMenuLabel>John Doe</DropdownMenuLabel>
+            <DropdownMenuLabel>Ansh Vohra</DropdownMenuLabel>
             <DropdownMenuLabel className="text-xs font-normal text-muted-foreground">
-              john@example.com
+              anshvohra1@gmail.com
             </DropdownMenuLabel>
             <DropdownMenuSeparator />
             <DropdownMenuSeparator />
