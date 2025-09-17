@@ -6,6 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Loader2 } from "lucide-react";
 import heroImage from "@/assets/hero-contracts.jpg";
+import { apiRequest } from "@/lib/api";
 
 export default function Signup() {
   const [isLoading, setIsLoading] = useState(false);
@@ -19,31 +20,34 @@ export default function Signup() {
   const navigate = useNavigate();
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsLoading(true);
-    setError("");
+  e.preventDefault();
+  setIsLoading(true);
+  setError("");
 
-    // Simulate API call
-    try {
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      // Simple validation for demo
-      if (formData.password !== formData.confirmPassword) {
-        setError("Passwords don't match");
-        return;
-      }
-      
-      if (formData.name && formData.email && formData.password) {
-        navigate("/dashboard/contracts");
-      } else {
-        setError("Please fill in all fields");
-      }
-    } catch (err) {
-      setError("Signup failed. Please try again.");
-    } finally {
-      setIsLoading(false);
+  try {
+    if (formData.password !== formData.confirmPassword) {
+      setError("Passwords don't match");
+      return;
     }
-  };
+
+    // Call backend signup
+    await apiRequest("/auth/signup", {
+      method: "POST",
+      body: JSON.stringify({
+        // name: formData.name,
+        username: formData.email,
+        password: formData.password,
+      }),
+    });
+
+    // Redirect after success
+    navigate("/dashboard/contracts");
+  } catch (err: any) {
+    setError(err.message || "Signup failed. Please try again.");
+  } finally {
+    setIsLoading(false);
+  }
+};
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData(prev => ({

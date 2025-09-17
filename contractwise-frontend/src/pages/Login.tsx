@@ -6,6 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Loader2 } from "lucide-react";
 import heroImage from "@/assets/hero-contracts.jpg";
+import { apiRequest } from "@/lib/api"; // helper we made earlier
 
 export default function Login() {
   const [isLoading, setIsLoading] = useState(false);
@@ -19,18 +20,28 @@ export default function Login() {
     setIsLoading(true);
     setError("");
 
-    // Simulate API call
     try {
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      // Simple validation for demo
-      if (email && password) {
-        navigate("/dashboard/contracts");
-      } else {
+      if (!email || !password) {
         setError("Please fill in all fields");
+        return;
       }
-    } catch (err) {
-      setError("Login failed. Please try again.");
+
+      // Call backend login
+      const data = await apiRequest<{ access_token: string; token_type: string }>(
+        "/auth/login",
+        {
+          method: "POST",
+          body: JSON.stringify({ username:email, password }),
+        }
+      );
+
+      // Save JWT in localStorage
+      localStorage.setItem("token", data.access_token);
+
+      // Redirect to dashboard
+      navigate("/dashboard/contracts");
+    } catch (err: any) {
+      setError(err.message || "Login failed. Please try again.");
     } finally {
       setIsLoading(false);
     }
@@ -111,7 +122,7 @@ export default function Login() {
                 </Button>
                 
                 <p className="text-sm text-muted-foreground text-center">
-                  Don't have an account?{" "}
+                  Don&apos;t have an account?{" "}
                   <Link to="/signup" className="text-primary hover:underline">
                     Sign up here
                   </Link>
