@@ -33,4 +33,4 @@ def db_check():
         return {"connected": False, "error": str(e)}
 
 # For Vercel
-handler = app
+# handler = app
