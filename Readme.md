@@ -15,6 +15,8 @@ ContractWise is a full-stack SaaS prototype designed for intelligent contract ma
 | **Frontend Application**| [**https://contractwise.vercel.app/**](https://contractwise.vercel.app/) | ✅ Online   |
 | **Backend API Docs** | [**https://contractwise-backend.vercel.app/docs**](https://contractwise-backend.vercel.app/docs) | ✅ Online   |
 
+Testing Credentials: email: anshvohra1@gmail.com password:123
+
 ## ✨ Key Features
 
 * **Secure Authentication**: JWT-based user sign-up and login system ensures that all user data is isolated and protected.
