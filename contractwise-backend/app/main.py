@@ -21,3 +21,5 @@ def db_check():
         return {"connected": True, "data": res.data}
     except Exception as e:
         return {"connected": False, "error": str(e)}
+    
+handler = app
