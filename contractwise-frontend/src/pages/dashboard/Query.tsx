@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { DashboardLayout } from "@/components/layout/DashboardLayout";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -28,55 +28,63 @@ export default function QueryPage() {
 
   const exampleQueries = [
     "What are the termination clauses in my contracts?",
-    "Which contracts expire in the next 6 months?", 
+    "Which contracts expire in the next 6 months?",
     "What liability limitations exist across all agreements?",
     "Show me all payment terms and deadlines"
   ];
 
-  const handleSubmit = async (e: React.FormEvent) => {
-  e.preventDefault();
-  if (!query.trim()) return;
-
-  setLoading(true);
-  setResult(null);
-
-  try {
-    const token = localStorage.getItem("token"); // ensure token is saved at login
-
-    const res = await fetch(`${import.meta.env.VITE_API_BASE_URL}/ask`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
-      },
-      body: JSON.stringify({ question: query }),
-    });
-
-    if (!res.ok) {
-      throw new Error(`Failed to query AI: ${res.statusText}`);
+  useEffect(() => {
+    const tk = localStorage.getItem("token");
+    if (!tk) {
+      window.location.href = "/login";
+      return;
     }
+  }, []);
 
-    const data = await res.json();
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!query.trim()) return;
 
-    // Map backend format → frontend format
-    setResult({
-      answer: data.answer,
-      confidence: 90, // backend doesn’t return this, so fake or remove
-      chunks: data.chunks.map((c: any, index: number) => ({
-        id: String(index),
-        text: c.text,
-        contractName: c.metadata.contract_name,
-        pageNumber: c.metadata.page,
-        relevanceScore: c.similarity,
-        confidence: Math.round(c.similarity * 100), // optional
-      })),
-    });
-  } catch (error) {
-    console.error("Query failed:", error);
-  } finally {
-    setLoading(false);
-  }
-};
+    setLoading(true);
+    setResult(null);
+
+    try {
+      const token = localStorage.getItem("token"); // ensure token is saved at login
+
+      const res = await fetch(`${import.meta.env.VITE_API_BASE_URL}/ask`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ question: query }),
+      });
+
+      if (!res.ok) {
+        throw new Error(`Failed to query AI: ${res.statusText}`);
+      }
+
+      const data = await res.json();
+
+      // Map backend format → frontend format
+      setResult({
+        answer: data.answer,
+        confidence: 90, // backend doesn’t return this, so fake or remove
+        chunks: data.chunks.map((c: any, index: number) => ({
+          id: String(index),
+          text: c.text,
+          contractName: c.metadata.contract_name,
+          pageNumber: c.metadata.page,
+          relevanceScore: c.similarity,
+          confidence: Math.round(c.similarity * 100), // optional
+        })),
+      });
+    } catch (error) {
+      console.error("Query failed:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
 
   const handleExampleClick = (exampleQuery: string) => {
@@ -123,7 +131,7 @@ export default function QueryPage() {
                   {loading ? "Processing..." : "Ask"}
                 </Button>
               </div>
-              
+
               {/* Example Queries */}
               <div className="space-y-2">
                 <p className="text-sm text-muted-foreground">Try these examples:</p>
@@ -183,8 +191,8 @@ export default function QueryPage() {
               </CardHeader>
               <CardContent className="space-y-4">
                 {result.chunks.map((chunk) => (
-                  <div 
-                    key={chunk.id} 
+                  <div
+                    key={chunk.id}
                     className="p-4 border border-card-border rounded-lg bg-card"
                   >
                     <div className="flex items-start justify-between mb-3">

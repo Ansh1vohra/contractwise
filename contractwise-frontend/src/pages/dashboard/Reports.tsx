@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Calendar, Download, FileSpreadsheet, FileText, PieChart, TrendingUp } from "lucide-react";
+import { useEffect } from "react";
 
 export default function Reports() {
   const availableReports = [
@@ -85,6 +86,14 @@ export default function Reports() {
     console.log('Downloading report:', reportId);
     // In a real app, this would download the report file
   };
+
+  useEffect(() => {
+    const tk = localStorage.getItem("token");
+    if (!tk) {
+      window.location.href = "/login";
+      return;
+    }
+  }, []);
 
   return (
     <DashboardLayout>
@@ -235,7 +244,7 @@ export default function Reports() {
                   Create Dashboard
                 </Button>
               </div>
-              
+
               <div className="p-4 border border-card-border rounded-lg text-center">
                 <FileText className="mx-auto h-8 w-8 text-muted-foreground mb-2" />
                 <h4 className="font-medium mb-1">Custom Analysis</h4>
@@ -246,7 +255,7 @@ export default function Reports() {
                   Build Report
                 </Button>
               </div>
-              
+
               <div className="p-4 border border-card-border rounded-lg text-center">
                 <TrendingUp className="mx-auto h-8 w-8 text-muted-foreground mb-2" />
                 <h4 className="font-medium mb-1">Trend Analysis</h4>

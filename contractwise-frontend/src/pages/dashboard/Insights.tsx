@@ -3,6 +3,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { TrendingUp, AlertTriangle, CheckCircle, Clock, BarChart3 } from "lucide-react";
+import { useEffect } from "react";
 
 export default function Insights() {
   const riskDistribution = [
@@ -55,6 +56,14 @@ export default function Insights() {
       default: return '';
     }
   };
+
+  useEffect(() => {
+      const tk = localStorage.getItem("token");
+      if (!tk) {
+        window.location.href = "/login";
+        return;
+      }
+    }, []);
 
   return (
     <DashboardLayout>
